@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deepawali — Festival of Lights & Joy</title>
+
+  <!-- Google Fonts for authentic festive elegance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Poppins:wght@300;400;500;600&family=Rozha+One&family=Yatra+One&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            cinzel: ['Cinzel', 'serif'],
+            hindi: ['Yatra One', 'cursive'],
+            rozha: ['Rozha One', 'serif'],
+            poppins: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            diwali: {
+              gold: '#ffd369',
+              amber: '#f59e0b',
+              vermilion: '#e63946',
+              marigold: '#fb8500',
+              deepNight: '#070b19',
+              midNight: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom glow and festive micro-animations */
+    body {
+      background: radial-gradient(circle at 50% 25%, #181d38 0%, #0c1024 45%, #050711 100%);
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #fff7c2 0%, #ffd066 35%, #f59e0b 70%, #d97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .shimmer-badge {
+      background: linear-gradient(90deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.28) 50%, rgba(255,215,0,0.1) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 4s infinite linear;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* Candle/Diya flame realism */
+    .flame-core {
+      animation: flicker 0.12s infinite alternate ease-in-out;
+      transform-origin: 50% 90%;
+    }
+    
+    @keyframes flicker {
+      0% {
+        transform: scale(1) skewX(-1.5deg);
+        filter: drop-shadow(0 0 10px #ff9e00) drop-shadow(0 0 25px #ff5400);
+      }
+      50% {
+        transform: scale(1.05, 0.96) skewX(1deg);
+        filter: drop-shadow(0 0 14px #ffb703) drop-shadow(0 0 35px #fb8500);
+      }
+      100% {
+        transform: scale(0.96, 1.04) skewX(-0.5deg);
+        filter: drop-shadow(0 0 12px #ffd166) drop-shadow(0 0 28px #e63946);
+      }
+    }
+
+    .rangoli-glow {
+      filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.35));
+    }
+
+    /* Floating Lantern Animation */
+    .lantern-float {
+      animation: drift 18s infinite linear;
+    }
+
+    @keyframes drift {
+      0% {
+        transform: translateY(110vh) translateX(0) scale(0.6);
+        opacity: 0;
+      }
+      10% { opacity: 0.9; }
+      80% { opacity: 0.85; }
+      100% {
+        transform: translateY(-20vh) translateX(60px) scale(1);
+        opacity: 0;
+      }
+    }
+
+    /* Backdrop blur glass card */
+    .glass-card {
+      background: rgba(18, 24, 46, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 215, 0, 0.22);
+    }
+  </style>
+</head>
+
+<body class="relative min-h-screen text-slate-100 font-poppins flex flex-col justify-between selection:bg-amber-500 selection:text-black">
+
+  <!-- Interactive Sparkler Canvas (Background interaction layer) -->
+  <canvas id="sparklerCanvas" class="fixed inset-0 w-full h-full pointer-events-auto z-10 cursor-crosshair"></canvas>
+
+  <!-- Ambient Sky Lanterns Container (Procedural CSS/SVG) -->
+  <div id="lanternsContainer" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+  <!-- Top Navigation & Controls Bar -->
+  <header class="relative z-20 w-full px-5 py-4 max-w-5xl mx-auto flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+        🪔
+      </div>
+      <div>
+        <p class="font-cinzel text-xs tracking-widest text-amber-200/80 uppercase">Subh Deepawali</p>
+        <p class="text-[10px] text-amber-400/60 tracking-wider">Festival of Lights</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <!-- Audio Toggle Button -->
+      <button id="soundToggleBtn" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/70 border border-amber-500/30 hover:border-amber-400 text-amber-300 text-xs transition duration-200 hover:scale-105 active:scale-95 shadow-lg backdrop-blur">
+        <span id="soundIcon">🔇</span>
+        <span id="soundStatusText" class="hidden sm:inline font-medium">Sound: Off</span>
+      </button>
+
+      <!-- Sparkler Blast Burst Button -->
+      <button id="burstBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 font-semibold text-xs transition duration-200 hover:brightness-110 active:scale-95 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+        <span>✨</span>
+        <span>Light Phuljhadi</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="relative z-20 flex-1 flex flex-col items-center justify-center px-4 py-8 text-center max-w-3xl mx-auto w-full">
+    
+    <!-- Dynamic Receiver Banner (Appears if ?from= or ?to= is present) -->
+    <div id="customGreetingHeader" class="mb-4 inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-amber-400/30 shimmer-badge shadow-[0_0_25px_rgba(245,158,11,0.15)] animate-fade-in">
+      <span class="text-amber-300 text-sm">✨</span>
+      <span id="senderGreetingText" class="text-xs sm:text-sm font-medium tracking-wide text-amber-100">
+        Warm Festive Wishes Sent Especially For You
+      </span>
+      <span class="text-amber-300 text-sm">✨</span>
+    </div>
+
+    <!-- Main Typography Header -->
+    <div class="space-y-3 mb-6">
+      <p class="font-hindi text-amber-300/90 text-2xl sm:text-3xl tracking-wide drop-shadow-[0_2px_10px_rgba(251,191,36,0.3)]">
+        शुभ दीपावली
+      </p>
+      <h1 class="font-cinzel text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight gold-gradient-text drop-shadow-[0_4px_30px_rgba(255,200,80,0.25)] leading-tight">
+        HAPPY DIWALI
+      </h1>
+      <p class="max-w-lg mx-auto text-slate-300 text-sm sm:text-base font-light leading-relaxed">
+        May the pure radiance of divine diyas banish all darkness, bringing prosperity, joyful health, peace, and eternal light to your hearth and soul.
+      </p>
+    </div>
+
+    <!-- Central Interactive Diya Centerpiece -->
+    <div class="my-3 flex flex-col items-center group cursor-pointer" id="centralDiyaInteraction" title="Tap to Stoke the Flame">
+      <div class="relative w-48 sm:w-60 h-32 flex items-center justify-center">
+        <!-- Ambient Radiance Aura -->
+        <div id="diyaAura" class="absolute w-44 h-44 rounded-full bg-amber-500/25 blur-3xl transition-all duration-700 pointer-events-none scale-100"></div>
+
+        <!-- SVG Diya Artwork with Detailed Filigree -->
+        <svg class="w-full h-full relative z-10 filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Realistic Glowing Flame Layer -->
+          <g id="mainFlameGroup" class="flame-core">
+            <!-- Outermost Glow -->
+            <path d="M100 8 C108 28, 122 45, 114 62 C108 73, 92 73, 86 62 C78 45, 92 28, 100 8 Z" fill="url(#outerFlameGrad)" opacity="0.85"/>
+            <!-- Inner Bright Fire -->
+            <path d="M100 18 C105 32, 115 46, 109 58 C105 65, 95 65, 91 58 C85 46, 95 32, 100 18 Z" fill="url(#innerFlameGrad)"/>
+            <!-- Heart of Flame (White Core) -->
+            <ellipse cx="100" cy="54" rx="4.5" ry="9" fill="#ffffff" opacity="0.95"/>
+            <!-- Spark particles -->
+            <circle cx="98" cy="22" r="1" fill="#fff" opacity="0.75"/>
+            <circle cx="103" cy="14" r="0.7" fill="#ffd166" opacity="0.8"/>
+          </g>
+
+          <!-- Brass Oil Base Diya -->
+          <!-- Wick Holder Rim -->
+          <ellipse cx="100" cy="62" rx="14" ry="4" fill="#602908" />
+          <path d="M99 57 L101 57 L100.5 64 L99.5 64 Z" fill="#2d1302" />
+
+          <!-- Golden Bowl Body with Metallic Gradient -->
+          <path d="M30 63 C30 92, 70 102, 100 102 C130 102, 170 92, 170 63 C155 69, 130 73, 100 73 C70 73, 45 69, 30 63 Z" fill="url(#brassBodyGrad)" stroke="#ffd700" stroke-width="0.75" />
+          
+          <!-- Diya Lip Highlight -->
+          <ellipse cx="100" cy="64" rx="70" ry="10" fill="url(#diyaRimGrad)" stroke="#ffea75" stroke-width="0.8"/>
+          <ellipse cx="100" cy="64" rx="64" ry="7.5" fill="#4a1805" />
+
+          <!-- Intricate Floral Traditional Engraving on Base -->
+          <path d="M55 76 Q75 88 100 89 Q125 88 145 76" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.85"/>
+          <circle cx="70" cy="82" r="2.2" fill="#ffd066" />
+          <circle cx="85" cy="86" r="2.5" fill="#ffd066" />
+          <circle cx="100" cy="87.5" r="3" fill="#ffffff" />
+          <circle cx="115" cy="86" r="2.5" fill="#ffd066" />
+          <circle cx="130" cy="82" r="2.2" fill="#ffd066" />
+
+          <!-- Gradients definition -->
+          <defs>
+            <linearGradient id="outerFlameGrad" x1="100" y1="8" x2="100" y2="73" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fff5ba"/>
+              <stop offset="25%" stop-color="#ffb703"/>
+              <stop offset="65%" stop-color="#fb8500"/>
+              <stop offset="100%" stop-color="#d00000" stop-opacity="0.2"/>
+            </linearGradient>
+            <linearGradient id="innerFlameGrad" x1="100" y1="18" x2="100" y2="65" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="40%" stop-color="#fff3b0"/>
+              <stop offset="80%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#ea580c"/>
+            </linearGradient>
+            <linearGradient id="brassBodyGrad" x1="100" y1="63" x2="100" y2="102" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#8d4914"/>
+              <stop offset="35%" stop-color="#d97706"/>
+              <stop offset="65%" stop-color="#f59e0b"/>
+              <stop offset="85%" stop-color="#b45309"/>
+              <stop offset="100%" stop-color="#5a2305"/>
+            </linearGradient>
+            <linearGradient id="diyaRimGrad" x1="30" y1="64" x2="170" y2="64" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#b45309"/>
+              <stop offset="25%" stop-color="#fef08a"/>
+              <stop offset="50%" stop-color="#f59e0b"/>
+              <stop offset="75%" stop-color="#fef08a"/>
+              <stop offset="100%" stop-color="#92400e"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <p class="text-[11px] text-amber-300/70 tracking-widest uppercase mt-1 transition group-hover:text-amber-200">
+        👆 Tap diya or drag anywhere to ignite sparks
+      </p>
+    </div>
+
+    <!-- Personalized Greeting Link Generator Section -->
+    <div class="mt-4 w-full max-w-md mx-auto glass-card rounded-2xl p-5 shadow-2xl relative z-30">
+      <div class="flex items-center gap-2 justify-center mb-2 text-amber-300 font-cinzel text-sm font-semibold tracking-wider">
+        <span>✦</span>
+        <span>CREATE YOUR CUSTOM GREETING</span>
+        <span>✦</span>
+      </div>
+      <p class="text-xs text-slate-300 mb-4 leading-normal">
+        Put your name below to create a direct WhatsApp wish link for your family & friends!
+      </p>
+
+      <form id="greetingForm" class="flex flex-col gap-2.5">
+        <div class="relative">
+          <input
+            id="senderNameInput"
+            type="text"
+            maxlength="40"
+            placeholder="Type your name (e.g., Rohit Sharma)"
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-950/70 border border-amber-500/40 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition shadow-inner"
+            required
+          />
+          <span class="absolute right-3 top-2.5 text-slate-400 text-sm">✍️</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+          <button
+            type="submit"
+            id="generateLinkBtn"
+            class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs transition duration-150 transform active:scale-95 shadow-md flex items-center justify-center gap-2">
+            <span>🔗 Copy Share Link</span>
+          </button>
+
+          <button
+            type="button"
+            id="shareWhatsAppBtn"
+            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-medium text-xs transition duration-150 transform active:scale-95 shadow-md flex items-center justify-center gap-2">
+            <span>💬 Send on WhatsApp</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Feedback toast inside card -->
+      <div id="copyAlertToast" class="hidden mt-3 p-2 bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs rounded-lg transition">
+        Link copied to clipboard! Share it with your loved ones.
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Decorative Rangoli Graphic & Mini Diyas Floor -->
+  <footer class="relative z-10 w-full overflow-hidden pt-4 pb-6 flex flex-col items-center">
+    
+    <!-- Intricate Bottom Rangoli Geometry (SVG Pattern) -->
+    <div class="w-full max-w-2xl px-4 opacity-50 rangoli-glow pointer-events-none">
+      <svg viewBox="0 0 600 80" class="w-full h-16 sm:h-20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 40 Q75 10 150 40 T300 40 T450 40 T600 40" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <path d="M0 40 Q75 70 150 40 T300 40 T450 40 T600 40" stroke="#ffd166" stroke-width="1.2"/>
+        <circle cx="75" cy="40" r="14" stroke="#fb8500" stroke-width="1"/>
+        <circle cx="225" cy="40" r="14" stroke="#fb8500" stroke-width="1"/>
+        <circle cx="375" cy="40" r="14" stroke="#fb8500" stroke-width="1"/>
+        <circle cx="525" cy="40" r="14" stroke="#fb8500" stroke-width="1"/>
+
+        <!-- Mini Lotus Motifs in Center -->
+        <circle cx="300" cy="40" r="22" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="2 4"/>
+        <circle cx="300" cy="40" r="8" fill="#ffd166"/>
+      </svg>
+    </div>
+
+    <!-- Small Floor Diyas Array -->
+    <div class="flex items-center justify-center gap-6 sm:gap-12 mt-[-10px]">
+      <div class="mini-diya transform scale-75 opacity-85">🪔</div>
+      <div class="mini-diya transform scale-90 opacity-95">🪔</div>
+      <div class="mini-diya transform scale-110">🪔</div>
+      <div class="mini-diya transform scale-90 opacity-95">🪔</div>
+      <div class="mini-diya transform scale-75 opacity-85">🪔</div>
+    </div>
+
+    <!-- Footer Copyright & Hosting Tag -->
+    <div class="mt-4 text-center">
+      <p class="text-[11px] text-slate-400">
+        Crafted with devotion & lights. Host directly with <span class="text-amber-300 font-mono">GitHub Pages</span>.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Application Logic: Audio Engine, Particle Physics, Share URL Param Logic -->
+  <script>
+    /* =========================================================
+     * 1. Dynamic Search Parameters & Personalized Wish Handling
+     * ========================================================= */
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromParam = urlParams.get('from');
+    const toParam = urlParams.get('to');
+
+    const senderGreetingText = document.getElementById('senderGreetingText');
+    const senderNameInput = document.getElementById('senderNameInput');
+
+    if (fromParam) {
+      const sanitizedName = decodeURIComponent(fromParam).trim();
+      if (sanitizedName) {
+        senderGreetingText.innerHTML = `✨ <strong>${escapeHTML(sanitizedName)}</strong> wishes you and your family a Blessed Diwali! ✨`;
+        senderNameInput.value = sanitizedName;
+        document.title = `Diwali Wishes from ${sanitizedName} 🪔`;
+      }
+    } else if (toParam) {
+      const sanitizedTo = decodeURIComponent(toParam).trim();
+      senderGreetingText.innerHTML = `✨ Specially dedicated to <strong>${escapeHTML(sanitizedTo)}</strong> & family! ✨`;
+    }
+
+    function escapeHTML(str) {
+      const p = document.createElement('p');
+      p.appendChild(document.createTextNode(str));
+      return p.innerHTML;
+    }
+
+    // Build sharable link
+    function getShareableURL(name) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('from', name.trim());
+      return url.toString();
+    }
+
+    // Form submission (Copy link)
+    const greetingForm = document.getElementById('greetingForm');
+    const copyAlertToast = document.getElementById('copyAlertToast');
+
+    function triggerCopy(text) {
+      // Use fallback compatible copy method
+      const tempInput = document.createElement('input');
+      tempInput.style.position = 'absolute';
+      tempInput.style.left = '-9999px';
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {
+        console.error('Copy failed', err);
+      }
+      document.body.removeChild(tempInput);
+
+      // Toast feedback
+      copyAlertToast.classList.remove('hidden');
+      setTimeout(() => {
+        copyAlertToast.classList.add('hidden');
+      }, 4000);
+    }
+
+    greetingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = senderNameInput.value.trim() || 'A Friend';
+      const shareUrl = getShareableURL(name);
+      
+      // Update browser URL without reloading page
+      window.history.replaceState({}, '', shareUrl);
+      senderGreetingText.innerHTML = `✨ <strong>${escapeHTML(name)}</strong> wishes you and your family a Blessed Diwali! ✨`;
+      
+      triggerCopy(shareUrl);
+      createSparkBurst(window.innerWidth / 2, window.innerHeight / 2, 80);
+      playSparklerBurstSound();
+    });
+
+    // Direct WhatsApp share
+    const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
+    shareWhatsAppBtn.addEventListener('click', () => {
+      const name = senderNameInput.value.trim() || 'Your Friend';
+      const shareUrl = getShareableURL(name);
+      const textMessage = `🪔 *Shubh Deepawali!* ✨\n${name} has sent you a special interactive Diwali greeting full of lights and sparklers! \n\nTouch the diya to open your wish here: 👇\n${shareUrl}`;
+      const waURL = `https://api.whatsapp.com/send?text=${encodeURIComponent(textMessage)}`;
+      window.open(waURL, '_blank');
+    });
+
+    /* =========================================================
+     * 2. Web Audio API (Synthesized Drone & Phuljhadi SFX)
+     * No external mp3 files needed!
+     * ========================================================= */
+    let audioCtx = null;
+    let isSoundOn = false;
+    let droneOsc1 = null;
+    let droneOsc2 = null;
+    let droneGain = null;
+
+    function initAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Start soft Indian tanpura/meditative ambient drone (Root + Fifth harmony)
+    function startAmbientDrone() {
+      if (!audioCtx) initAudioContext();
+
+      droneGain = audioCtx.createGain();
+      droneGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      droneGain.gain.exponentialRampToValueAtTime(0.04, audioCtx.currentTime + 3);
+
+      // Sa (C# / ~138 Hz) and Pa (~207 Hz)
+      droneOsc1 = audioCtx.createOscillator();
+      droneOsc2 = audioCtx.createOscillator();
+
+      droneOsc1.type = 'triangle';
+      droneOsc1.frequency.setValueAtTime(138.59, audioCtx.currentTime);
+
+      droneOsc2.type = 'sine';
+      droneOsc2.frequency.setValueAtTime(207.65, audioCtx.currentTime);
+
+      // Subtle vibrato LFO
+      const lfo = audioCtx.createOscillator();
+      const lfoGain = audioCtx.createGain();
+      lfo.frequency.setValueAtTime(0.2, audioCtx.currentTime);
+      lfoGain.gain.setValueAtTime(1.5, audioCtx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(droneOsc1.frequency);
+      lfo.start();
+
+      droneOsc1.connect(droneGain);
+      droneOsc2.connect(droneGain);
+      droneGain.connect(audioCtx.destination);
+
+      droneOsc1.start();
+      droneOsc2.start();
+    }
+
+    function stopAmbientDrone() {
+      if (droneGain && audioCtx) {
+        droneGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1);
+        setTimeout(() => {
+          if (droneOsc1) { droneOsc1.stop(); droneOsc1.disconnect(); }
+          if (droneOsc2) { droneOsc2.stop(); droneOsc2.disconnect(); }
+          droneOsc1 = null;
+          droneOsc2 = null;
+        }, 1000);
+      }
+    }
+
+    // Procedural Phuljhadi/Sparkler crackle sound
+    function playSparklerCrackle() {
+      if (!isSoundOn || !audioCtx) return;
+      try {
+        const bufferSize = audioCtx.sampleRate * 0.08; // 80ms noise
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+        }
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(3200 + Math.random() * 2500, audioCtx.currentTime);
+        filter.Q.setValueAtTime(2.5, audioCtx.currentTime);
+
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+        noise.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        noise.start();
+      } catch (err) {}
+    }
+
+    // Play lively burst effect
+    function playSparklerBurstSound() {
+      if (!isSoundOn || !audioCtx) return;
+      for (let i = 0; i < 7; i++) {
+        setTimeout(() => {
+          playSparklerCrackle();
+        }, i * 35);
+      }
+    }
+
+    // Sound toggle UI event
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundIcon = document.getElementById('soundIcon');
+    const soundStatusText = document.getElementById('soundStatusText');
+
+    soundToggleBtn.addEventListener('click', () => {
+      initAudioContext();
+      isSoundOn = !isSoundOn;
+      if (isSoundOn) {
+        soundIcon.textContent = '🔊';
+        soundStatusText.textContent = 'Sound: On';
+        startAmbientDrone();
+        playSparklerBurstSound();
+      } else {
+        soundIcon.textContent = '🔇';
+        soundStatusText.textContent = 'Sound: Off';
+        stopAmbientDrone();
+      }
+    });
+
+    /* =========================================================
+     * 3. Realistic Phuljhadi (Sparkler) Canvas Physics
+     * ========================================================= */
+    const canvas = document.getElementById('sparklerCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let particles = [];
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const sparkPalette = [
+      '#ffffff',
+      '#fff275',
+      '#ffd000',
+      '#ff8c00',
+      '#ff4500',
+      '#ff0055',
+      '#00f5d4'
+    ];
+
+    class SparkParticle {
+      constructor(x, y, speedMult = 1) {
+        this.x = x;
+        this.y = y;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = (Math.random() * 5 + 1.5) * speedMult;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.color = sparkPalette[Math.floor(Math.random() * sparkPalette.length)];
+        this.alpha = 1;
+        this.decay = Math.random() * 0.02 + 0.015;
+        this.gravity = 0.12;
+        this.size = Math.random() * 2.4 + 1.2;
+        this.history = [];
+      }
+
+      update() {
+        this.history.push({ x: this.x, y: this.y });
+        if (this.history.length > 4) this.history.shift();
+
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.vx *= 0.98;
+        this.alpha -= this.decay;
+      }
+
+      draw(context) {
+        context.save();
+        context.globalAlpha = Math.max(this.alpha, 0);
+        context.fillStyle = this.color;
+        context.shadowColor = this.color;
+        context.shadowBlur = 8;
+
+        // Spark point
+        context.beginPath();
+        context.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        context.fill();
+
+        // Trail tail
+        if (this.history.length > 1) {
+          context.beginPath();
+          context.moveTo(this.history[0].x, this.history[0].y);
+          for (let i = 1; i < this.history.length; i++) {
+            context.lineTo(this.history[i].x, this.history[i].y);
+          }
+          context.strokeStyle = this.color;
+          context.lineWidth = this.size * 0.6;
+          context.stroke();
+        }
+
+        context.restore();
+      }
+    }
+
+    function createSparkBurst(x, y, count = 25, speedMult = 1) {
+      for (let i = 0; i < count; i++) {
+        particles.push(new SparkParticle(x, y, speedMult));
+      }
+      playSparklerCrackle();
+    }
+
+    // Animation Loop
+    function renderLoop() {
+      // Clear with slight trail retention for glow
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        p.draw(ctx);
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Interactive pointer listeners (mouse + touch)
+    let isInteracting = false;
+    let lastMoveTime = 0;
+
+    function handlePointerSpark(clientX, clientY) {
+      const now = performance.now();
+      if (now - lastMoveTime > 35) {
+        createSparkBurst(clientX, clientY, 4, 0.8);
+        lastMoveTime = now;
+      }
+    }
+
+    window.addEventListener('mousedown', (e) => {
+      isInteracting = true;
+      createSparkBurst(e.clientX, e.clientY, 35, 1.4);
+    });
+    window.addEventListener('mouseup', () => { isInteracting = false; });
+    window.addEventListener('mousemove', (e) => {
+      if (isInteracting) {
+        handlePointerSpark(e.clientX, e.clientY);
+      }
+    });
+
+    // Touch support for phones & tablets
+    window.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      if (touch) {
+        createSparkBurst(touch.clientX, touch.clientY, 30, 1.3);
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      if (touch) {
+        handlePointerSpark(touch.clientX, touch.clientY);
+      }
+    }, { passive: true });
+
+    // Burst button action
+    document.getElementById('burstBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const rect = e.target.getBoundingClientRect();
+      createSparkBurst(rect.left + rect.width / 2, rect.top, 50, 1.5);
+      playSparklerBurstSound();
+    });
+
+    // Central Diya Tap Action
+    const centralDiya = document.getElementById('centralDiyaInteraction');
+    const diyaAura = document.getElementById('diyaAura');
+
+    centralDiya.addEventListener('click', (e) => {
+      const rect = centralDiya.getBoundingClientRect();
+      const sparkX = rect.left + rect.width / 2;
+      const sparkY = rect.top + 40;
+      createSparkBurst(sparkX, sparkY, 45, 1.3);
+      playSparklerBurstSound();
+
+      // Temporarily expand warm aura
+      diyaAura.style.transform = 'scale(1.5)';
+      diyaAura.style.backgroundColor = 'rgba(251, 146, 60, 0.45)';
+      setTimeout(() => {
+        diyaAura.style.transform = 'scale(1)';
+        diyaAura.style.backgroundColor = 'rgba(245, 158, 11, 0.25)';
+      }, 700);
+    });
+
+    /* =========================================================
+     * 4. Floating Sky Lanterns (Deep Kandils in Background)
+     * ========================================================= */
+    const lanternsContainer = document.getElementById('lanternsContainer');
+
+    function spawnLantern() {
+      const lantern = document.createElement('div');
+      lantern.className = 'absolute lantern-float pointer-events-none';
+      
+      const leftPos = Math.random() * 95; // 0 to 95%
+      const duration = 14 + Math.random() * 12; // 14 to 26 seconds
+      const delay = Math.random() * 2;
+      const size = 26 + Math.random() * 22;
+
+      lantern.style.left = `${leftPos}%`;
+      lantern.style.bottom = '-40px';
+      lantern.style.animationDuration = `${duration}s`;
+      lantern.style.animationDelay = `${delay}s`;
+
+      lantern.innerHTML = `
+        <svg width="${size}" height="${size * 1.3}" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 10px rgba(255, 153, 0, 0.8));">
+          <!-- Sky Lantern Body -->
+          <path d="M8 8 C12 2, 28 2, 32 8 C36 18, 38 38, 33 46 C28 49, 12 49, 7 46 C2 38, 4 18, 8 8 Z" fill="url(#lanternGlowGrad)" opacity="0.9"/>
+          <!-- Lantern Ribs -->
+          <path d="M20 5 L20 47" stroke="#ffb703" stroke-width="0.8" opacity="0.6"/>
+          <path d="M12 7 Q14 26 12 46" stroke="#ffb703" stroke-width="0.6" opacity="0.4"/>
+          <path d="M28 7 Q26 26 28 46" stroke="#ffb703" stroke-width="0.6" opacity="0.4"/>
+          <!-- Candle core inside lantern -->
+          <circle cx="20" cy="42" r="3" fill="#ffffff"/>
+          <defs>
+            <radialGradient id="lanternGlowGrad" cx="50%" cy="80%" r="60%">
+              <stop offset="0%" stop-color="#fffbdf"/>
+              <stop offset="35%" stop-color="#fb8500"/>
+              <stop offset="70%" stop-color="#d00000"/>
+              <stop offset="100%" stop-color="#370617"/>
+            </radialGradient>
+          </defs>
+        </svg>
+      `;
+
+      lanternsContainer.appendChild(lantern);
+
+      // Remove after animation finishes
+      setTimeout(() => {
+        lantern.remove();
+      }, (duration + delay) * 1000);
+    }
+
+    // Periodically release sky lanterns
+    for (let i = 0; i < 6; i++) {
+      setTimeout(spawnLantern, i * 1800);
+    }
+    setInterval(spawnLantern, 3500);
+
+    /* Start Canvas Particle Engine */
+    window.onload = function () {
+      renderLoop();
+      // Initial subtle spark burst at diya
+      setTimeout(() => {
+        const rect = centralDiya.getBoundingClientRect();
+        createSparkBurst(rect.left + rect.width / 2, rect.top + 40, 25, 1);
+      }, 800);
+    };
+  </script>
+</body>
+</html>
